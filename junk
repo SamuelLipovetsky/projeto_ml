@@ -1,0 +1,143 @@
+import pandas as pd
+df_metais= df = pd.DataFrame(metais_indicators, columns=["MÊS","MI","ME"])
+df_loucas= df = pd.DataFrame(loucas_indicators, columns=["MÊS","MI","ME"])
+
+
+df_selic = pd.read_excel('indicadores.xlsx', sheet_name='SELIC')
+df_selic =df_selic.drop("INDICADOR",axis=1)
+
+#dataframe INCC ICPA
+df_incc_ipca = pd.read_excel('indicadores.xlsx', sheet_name='INCC e IPCA')
+df_incc_ipca = df_incc_ipca.drop('(ACUMULADO 12 MESES)',axis=1)
+#datafram INCC
+df_incc = df_incc_ipca[df_incc_ipca['INDICADOR']=="INCC"]
+df_incc=df_incc.rename(columns={'(VAR. MENSAL)':'INCC'})
+df_incc =df_incc.drop('INDICADOR',axis=1)    
+#datafram Ipca
+df_ipca= df_incc_ipca[df_incc_ipca['INDICADOR']=="IPCA"]
+df_ipca=df_ipca.rename(columns={'(VAR. MENSAL)':"IPCA"})
+df_ipca =df_ipca.drop('INDICADOR',axis=1)
+
+#dataframe PMC
+df_pmc = pd.read_excel('indicadores.xlsx', sheet_name='PMC - FONTE')
+#datafram pmc construção
+df_pmc_const = df_pmc[df_pmc['INDICADOR']=="PMC DESSAZONALIZADO - CONSTRUÇÃO"]
+df_pmc_const = df_pmc_const.rename(columns={'ÍNDICE':'pmc_construcao'})
+df_pmc_const = df_pmc_const.drop('INDICADOR',axis=1)
+#datafram pmc varejo
+df_pmc_vare = df_pmc[df_pmc['INDICADOR']=="PMC DESSAZONALIZADO - VAREJO AMPLIADO"]
+df_pmc_vare = df_pmc_vare.rename(columns={'ÍNDICE':'pmc_varejo'})
+df_pmc_vare = df_pmc_vare.drop('INDICADOR',axis=1)
+
+
+#dataframe ABRAMAT 
+df_abramat = pd.read_excel('indicadores.xlsx', sheet_name='ABRAMAT')
+#datafram basico
+df_abramat_bas = df_abramat[df_abramat['INDICADOR']=="ABRAMAT - BÁSICOS"]
+df_abramat_bas = df_abramat_bas.rename(columns={'VAR VS A.A.':'abramat_basico'})
+df_abramat_bas = df_abramat_bas.drop('INDICADOR',axis=1)
+#datafram acabados
+df_abramat_acab = df_abramat[df_abramat['INDICADOR']=="ABRAMAT - ACABADOS"]
+df_abramat_acab = df_abramat_acab.rename(columns={'VAR VS A.A.':'abramat_acabados'})
+df_abramat_acab =df_abramat_acab.drop('INDICADOR',axis=1)
+
+#dataframa indices de confiança 
+df_confianca = pd.read_excel('indicadores.xlsx', sheet_name='ÍNDICES DE CONFIANÇA')
+
+#datafram confiaca construcao
+df_confianca_const = df_confianca[df_confianca['INDICADOR']=="ÍNDICE DE CONFIANÇA DA CONSTRUÇÃO (AJUSTE SAZONAL)"]
+df_confianca_const = df_confianca_const.rename(columns={'ÍNDICE':'confianca_construcao'})
+df_confianca_const = df_confianca_const.drop('INDICADOR',axis=1)
+#datafram confianca comercio
+df_confianca_come = df_confianca[df_confianca['INDICADOR']=="ÍNDICE DE CONFIANÇA DO COMÉRCIO (AJUSTE SAZONAL)"]
+df_confianca_come = df_confianca_come.rename(columns={'ÍNDICE':'confianca_comercio'})
+df_confianca_come = df_confianca_come.drop('INDICADOR',axis=1)
+#datafram confianca comnsumidor
+df_confianca_con = df_confianca[df_confianca['INDICADOR']=="ÍNDICE DE CONFIANÇA DA CONSTRUÇÃO (AJUSTE SAZONAL)"]
+df_confianca_con = df_confianca_con.rename(columns={'ÍNDICE':'confianca_consumidor'})
+df_confianca_con = df_confianca_con.drop('INDICADOR',axis=1)
+
+def trimester_to_month(df):
+    new_rows = []
+    for index, row in df.iterrows():
+        quarter = row['MÊS']
+        value = row['pib_construcao']
+        
+        # Extract the quarter and year
+        quarter_num = int(quarter[0])
+        year = int(quarter.split()[-1])
+        
+        # Calculate the starting month based on the quarter
+        start_month = (quarter_num - 1) * 3 + 1
+        
+        # Generate new rows for each month in the quarter
+        for month in range(start_month, start_month + 3):
+            date = pd.to_datetime(f'{month}/{year}', format='%m/%Y')
+            new_rows.append([date, value/3])
+
+    # Create a new dataframe from the new_rows list
+    new_df = pd.DataFrame(new_rows, columns=['MÊS', 'pib_construcao'])
+    return new_df
+
+#dataframe pib
+df_pib = pd.read_excel('indicadores.xlsx', sheet_name='PIB C. CIVIL E IND - TRIMESTRAL')
+#construcao
+df_pib_const = df_pib[df_pib['INDICADOR']=="PIB CONSTRUÇÃO CIVIL"]
+df_pib_const = df_pib_const.rename(columns={'% VAR. A.A.':'pib_construcao','TRI':'MÊS'})
+df_pib_const = df_pib_const.drop('INDICADOR',axis=1)
+print(df_pib_const)
+df_pib_const =trimester_to_month(df_pib_const)
+# print(df_pib_const)
+#industria
+df_pib_ind = df_pib[df_pib['INDICADOR']=="PIB INDÚSTRIA"]
+df_pib_ind = df_pib_ind.rename(columns={'% VAR. A.A.':'pib_construcao','TRI':'MÊS'})
+df_pib_ind = df_pib_ind.drop('INDICADOR',axis=1)
+df_pib_ind =trimester_to_month(df_pib_ind)
+# print(df_pib_ind)
+
+------------------
+
+
+# df_model_loucas = pd.merge(df_loucas, df_selic, on='MÊS', how='left')
+# df_model_loucas = pd.merge(df_model_loucas, df_ipca, on='MÊS', how='left')
+# df_model_loucas = pd.merge(df_model_loucas, df_incc, on='MÊS', how='left')
+# df_model_loucas = pd.merge(df_model_loucas, df_pmc_const, on='MÊS', how='left')
+# df_model_loucas = pd.merge(df_model_loucas, df_pmc_vare, on='MÊS', how='left')
+# df_model_loucas = pd.merge(df_model_loucas, df_abramat_bas, on='MÊS', how='left')
+# df_model_loucas = pd.merge(df_model_loucas, df_abramat_acab, on='MÊS', how='left')
+# df_model_loucas = pd.merge(df_model_loucas, df_confianca_con, on='MÊS', how='left')
+# df_model_loucas = pd.merge(df_model_loucas, df_confianca_come, on='MÊS', how='left')
+# df_model_loucas = pd.merge(df_model_loucas, df_confianca_const, on='MÊS', how='left')
+# df_model_loucas = pd.merge(df_model_loucas, df_pib_const, on='MÊS', how='left')
+# df_model_loucas = pd.merge(df_model_loucas, df_pib_ind, on='MÊS', how='left')
+df_model_loucas =df_model_loucas.sort_values('MÊS')
+df_model_loucas=df_model_loucas.drop('MÊS',axis=1)
+df_model_loucas['ME'] = np.where(df_model_loucas['ME'] >= 0, 1, -1)
+df_model_loucas=df_model_loucas.drop('MI',axis=1)
+df_model_loucas =df_model_loucas.dropna()
+
+
+# print(df_model_loucas)
+# creating the dataframe that will be used in the models
+df_model_metais = pd.merge(df_metais, df_selic, on='MÊS', how='left')
+df_model_metais = pd.merge(df_model_metais, df_ipca, on='MÊS', how='left')
+df_model_metais = pd.merge(df_model_metais, df_incc, on='MÊS', how='left')
+df_model_metais = pd.merge(df_model_metais, df_pmc_const, on='MÊS', how='left')
+df_model_metais = pd.merge(df_model_metais, df_pmc_vare, on='MÊS', how='left')
+df_model_metais = pd.merge(
+    df_model_metais, df_abramat_bas, on='MÊS', how='left')
+df_model_metais = pd.merge(
+    df_model_metais, df_abramat_acab, on='MÊS', how='left')
+df_model_metais = pd.merge(
+    df_model_metais, df_confianca_con, on='MÊS', how='left')
+df_model_metais = pd.merge(
+    df_model_metais, df_confianca_come, on='MÊS', how='left')
+df_model_metais = pd.merge(
+    df_model_metais, df_confianca_const, on='MÊS', how='left')
+df_model_metais = pd.merge(df_model_metais, df_pib_const, on='MÊS', how='left')
+df_model_metais = pd.merge(df_model_metais, df_pib_ind, on='MÊS', how='left')
+df_model_metais = df_model_metais.sort_values('MÊS')
+df_model_metais = df_model_metais.drop('MÊS', axis=1)
+df_model_metais['ME'] = np.where(df_model_metais['ME'] >= 0, 1, -1)
+df_model_metais = df_model_metais.drop('MI', axis=1)
+df_model_metais = df_model_metais.dropna()
